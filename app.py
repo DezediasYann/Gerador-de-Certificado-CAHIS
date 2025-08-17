@@ -1,10 +1,12 @@
+# --- app.py (versão com criação de pasta em Documentos corrigida) ---
+
 import sys
 import os
 import shutil
 import pandas as pd
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QLabel, QLineEdit, 
-    QPushButton, QVBoxLayout, QHBoxLayout, QFormLayout, 
+    QApplication, QWidget, QLabel, QLineEdit,
+    QPushButton, QVBoxLayout, QHBoxLayout, QFormLayout,
     QFileDialog, QComboBox, QMessageBox, QProgressDialog, QSpinBox, QCheckBox
 )
 from PySide6.QtGui import QPixmap, QIcon, QDesktopServices
@@ -21,7 +23,6 @@ def get_asset_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        # Em modo de desenvolvimento, o caminho base é a pasta do script
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 
@@ -29,13 +30,13 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         
-        # --- Configuração Inicial de Pastas do Usuário ---
+        # Chama a função que cria as pastas na pasta Documentos do usuário.
         self.setup_user_directories()
 
         self.setWindowTitle("Gerador de Certificados")
         self.setMinimumSize(1024, 768)
         
-        # (Dicionários e listas permanecem os mesmos)
+        # (Dicionários e listas de configuração permanecem os mesmos)
         self.funcoes_horas = { 'Ouvinte': 5, 'Palestrante': 2, 'Apresentador(a)': 10, 'Organizador(a)': 10, 'Mediador(a)': 2, 'Debatedor(a)': 2, 'Outro': '' }
         self.tipos_de_atividade = [ "Palestra", "Mesa redonda", "Apresentação de trabalho", "Curso", "Oficina", "Projeto de extensão", "Evento científico", "Disciplina não curricular", "Atividade Institucionalizada", "Estágio extracurricular", "Curso de língua estrangeira", "Concurso de monografia", "Bolsa de Iniciação Científica", "Competição esportiva", "Outro" ]
         self.atividades_sem_nome = ["Disciplina não curricular", "Bolsa de Iniciação Científica"]
@@ -115,17 +116,27 @@ class MainWindow(QWidget):
         
         self.on_atividade_change(self.atividade_combo.currentText()); self.on_funcao_change(self.funcao_combo.currentText()); self.update_preview()
 
+    def get_documents_path(self):
+        """Encontra a pasta 'Documentos' do usuário de forma robusta para Windows."""
+        if sys.platform == "win32":
+            import ctypes
+            from ctypes import wintypes
+            CSIDL_PERSONAL = 5
+            SHGFP_TYPE_CURRENT = 0
+            buf = ctypes.create_unicode_buffer(wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+            if buf.value:
+                return buf.value
+        # Fallback para outros sistemas ou se a chamada do Windows falhar
+        return os.path.join(os.path.expanduser('~'), 'Documents')
+
     def setup_user_directories(self):
         """Verifica e cria a estrutura de pastas do app na pasta Documentos do usuário."""
         try:
-            # Encontra a pasta 'Documentos' do usuário de forma segura
-            docs_path = os.path.join(os.path.expanduser('~'), 'Documents')
-            if not os.path.exists(docs_path):
-                # Fallback para o nome em português, caso 'Documents' não exista
-                docs_path = os.path.join(os.path.expanduser('~'), 'Documentos')
-
-            # Define os caminhos que o aplicativo usará
+            docs_path = self.get_documents_path()
             app_data_path = os.path.join(docs_path, 'Gerador de Certificados')
+            
+            # Define os caminhos que o aplicativo usará
             self.models_dir = os.path.join(app_data_path, 'Modelos')
             self.fonts_dir = os.path.join(app_data_path, 'Fontes')
             self.icons_dir = os.path.join(app_data_path, 'Icones')
@@ -135,8 +146,7 @@ class MainWindow(QWidget):
             os.makedirs(self.fonts_dir, exist_ok=True)
             os.makedirs(self.icons_dir, exist_ok=True)
 
-            # Copia os recursos padrão (que foram empacotados com o app) para a pasta do usuário
-            # A função get_asset_path encontra os arquivos tanto em modo de dev quanto compilado
+            # Copia os recursos padrão (empacotados com o app) para a pasta do usuário, se necessário.
             default_dirs = {'Modelos': self.models_dir, 'Fontes': self.fonts_dir, 'Icones': self.icons_dir}
             for dir_name, dest_path in default_dirs.items():
                 source_path = get_asset_path(dir_name)
@@ -144,7 +154,7 @@ class MainWindow(QWidget):
                     for item in os.listdir(source_path):
                         source_item = os.path.join(source_path, item)
                         dest_item = os.path.join(dest_path, item)
-                        if not os.path.exists(dest_item): # Só copia se o arquivo/pasta não existir
+                        if not os.path.exists(dest_item):
                             if os.path.isdir(source_item):
                                 shutil.copytree(source_item, dest_item)
                             else:
@@ -236,7 +246,6 @@ class MainWindow(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # A função de setup é chamada antes da janela ser criada
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
