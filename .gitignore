@@ -1,0 +1,17 @@
+# Ambiente Virtual do Python
+.venv/
+venv/
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Arquivos de configuração de Editores
+.vscode/
+.idea/
+
+# Arquivos gerados pelo programa (certificados, modelos)
+# É uma boa prática não versionar os arquivos de saída
+*.pdf
+*.xlsx
+*.csv
