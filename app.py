@@ -332,15 +332,22 @@ class MainWindow(QWidget):
     def update_preview(self):
         # Função principal que redesenha o preview do certificado.
         if not self.template_path or not self.font_paths: return
-        data = self.get_current_data(for_preview=True)
         
-        sucesso, resultado_img_pil = gerar_imagem_certificado(**data)
+        data = self.get_current_data(for_preview=True)
+
+        data_para_preview = data.copy()
+        data_para_preview['use_signature'] = False 
+
+        sucesso, resultado_img_pil = gerar_imagem_certificado(**data_para_preview)
 
         if sucesso:
             pixmap = QPixmap.fromImage(ImageQt(resultado_img_pil))
             scaled_pixmap = pixmap.scaled(self.preview_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            
+            # Define o fundo limpo (sem assinatura fixa)
             self.preview_label.set_base_pixmap(scaled_pixmap, resultado_img_pil.size)
             
+            # Agora, se a caixa estiver marcada, o PreviewLabel desenha a assinatura flutuante por cima
             if self.signature_checkbox.isChecked():
                 self.update_signature_from_controls()
             else:

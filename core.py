@@ -12,6 +12,7 @@ def draw_mixed_style_text(draw, pos, text_segments, fonts, max_width):
     for text, style in text_segments:
         if not text: continue
         font = fonts.get(style, fonts['regular'])
+        # O split() remove espaços em branco extras, garantindo que não duplique
         for word in text.split():
             words_with_style.append({'text': word, 'font': font, 'width': draw.textlength(word, font=font)})
 
@@ -71,12 +72,14 @@ def gerar_certificado(nome, funcao_participante, tipo_atividade, nome_evento, ca
         texto_data = f", ocorrida em {event_date}," if use_date and event_date.strip() else ""
 
         if funcao_participante_lower == "apresentador(a)" and nome_trabalho != "[Nome do Trabalho]":
-            texto_inicial = f"Certificamos que {nome}{texto_documento} apresentou o trabalho "
+            # REMOVIDO espaço extra no final da string abaixo
+            texto_inicial = f"Certificamos que {nome}{texto_documento} apresentou o trabalho"
             texto_trabalho = f'"{nome_trabalho}"'
             nome_evento_formatado = f'"{nome_evento}"' if nome_evento else ""
             
             partes_finais = [f"em nosso(a) {tipo_atividade_str.lower()}", nome_evento_formatado]
             texto_final_base = " ".join(filter(None, partes_finais))
+            # O renderizador já coloca espaço entre segmentos, não precisa forçar aqui se o join já fez
             texto_final = f"{texto_final_base}{texto_data} com carga horária de {carga_horaria}."
 
             estilo_trabalho = 'italic' if use_italic else 'regular'
@@ -84,17 +87,21 @@ def gerar_certificado(nome, funcao_participante, tipo_atividade, nome_evento, ca
 
         elif funcao_participante_lower == "organizador(a)":
             texto_documento = texto_documento or ","
-            texto_inicial = f"Certificamos que {nome}{texto_documento} participou da atividade de {tipo_atividade_str.lower()} "
+            # REMOVIDO espaço extra no final da string abaixo ("...atividade de {tipo}")
+            texto_inicial = f"Certificamos que {nome}{texto_documento} participou da atividade de {tipo_atividade_str.lower()}"
             texto_evento = f'"{nome_evento}"' if nome_evento else ""
-            texto_final = f" na qualidade de comissão organizadora, com carga horária de {carga_horaria}."
+            # REMOVIDO espaço extra no início da string abaixo ("na qualidade...")
+            texto_final = f"na qualidade de comissão organizadora, com carga horária de {carga_horaria}."
             estilo_evento = 'italic' if use_italic and nome_evento else 'regular'
             text_segments = [(texto_inicial, 'regular'), (texto_evento, estilo_evento), (texto_data, 'regular'), (texto_final, 'regular')]
 
         else:
             texto_documento = texto_documento or ","
-            texto_inicial = f"Certificamos que {nome}{texto_documento} participou como {funcao_participante_lower} da atividade de {tipo_atividade_str.lower()} "
+            # REMOVIDO espaço extra no final da string abaixo ("...atividade de {tipo}")
+            texto_inicial = f"Certificamos que {nome}{texto_documento} participou como {funcao_participante_lower} da atividade de {tipo_atividade_str.lower()}"
             texto_evento = f'"{nome_evento}"' if nome_evento else ""
-            texto_final = f" com carga horária de {carga_horaria}."
+            # REMOVIDO espaço extra no início da string abaixo ("com carga...")
+            texto_final = f"com carga horária de {carga_horaria}."
             estilo_evento = 'italic' if use_italic and nome_evento else 'regular'
             text_segments = [(texto_inicial, 'regular'), (texto_evento, estilo_evento), (texto_data, 'regular'), (texto_final, 'regular')]
 
