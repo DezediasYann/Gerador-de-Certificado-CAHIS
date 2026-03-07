@@ -5,7 +5,7 @@ a = Analysis(
     ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('Modelos', 'Modelos'), ('Fontes', 'Fontes'), ('Icones', 'Icones')],
+    datas=[('version.txt', '.'), ('Modelos', 'Modelos'), ('Fontes', 'Fontes'), ('Icones', 'Icones')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,6 +35,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='version.txt',
+    version='file_version_info.txt',
     icon=['icone.ico'],
 )
