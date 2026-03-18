@@ -1,1 +1,1 @@
-pyinstaller --clean --noconfirm --onefile --windowed --icon "icone.ico" --name "GeradorDeCertificados" --version-file "file_version_info.txt" --add-data "version.txt;." --add-data "Modelos;Modelos" --add-data "Fontes;Fontes" --add-data "Icones;Icones" app.py
+pyinstaller --clean --noconfirm --onedir --windowed --icon "icone.ico" --name "Gerador de Certificados" --version-file "file_version_info.txt" --add-data "version.txt;." --add-data "Modelos;Modelos" --add-data "Fontes;Fontes" --add-data "Icones;Icones" app.py

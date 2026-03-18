@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import requests
+import tempfile
 
 GITHUB_REPO = "DezediasYann/Gerador-de-Certificado-CAHIS"
 
@@ -37,43 +38,22 @@ def check_for_update(allow_prerelease=False):
     return None, None, None
 
 def download_and_update(download_url):
-    exe_path = sys.executable
-    exe_dir = os.path.dirname(exe_path)
-    update_path = exe_path + ".new"
+    # 1. Pega o caminho da pasta temporária do Windows (permissão de escrita livre)
+    temp_dir = tempfile.gettempdir()
+    installer_path = os.path.join(temp_dir, "Instalador_CAHIS_Update.exe")
     
+    # 2. Baixa o instalador do GitHub direto para a pasta temporária
     res = requests.get(download_url, stream=True)
-    with open(update_path, 'wb') as f:
+    with open(installer_path, 'wb') as f:
         for chunk in res.iter_content(8192):
             f.write(chunk)
             
-    bat_path = os.path.join(exe_dir, "update.bat")
-    
-    with open(bat_path, "w") as bat:
-        bat.write(
-            '@echo off\n'
-            ':loop\n'
-            'timeout /t 1 /nobreak > NUL\n'
-            f'move /y "{update_path}" "{exe_path}" > NUL 2>&1\n'
-            'if errorlevel 1 goto loop\n'
-            f'cd /d "{exe_dir}"\n'
-            f'start "" "{exe_path}"\n'
-            f'del "%~f0"\n'
-        )
-        
-    # Limpa as variáveis do PyInstaller para o novo processo não buscar a pasta velha
-    env_limpo = os.environ.copy()
-    env_limpo.pop('_MEIPASS2', None)
-    env_limpo.pop('_MEIPASS1', None)
-    env_limpo.pop('_MEIPASS', None)
-        
-    DETACHED_PROCESS = 0x00000008
+    # 3. Roda o instalador silenciosamente
+    # O Inno Setup vai pedir a permissão de administrador na tela automaticamente
     subprocess.Popen(
-        [bat_path], 
-        shell=True, 
-        creationflags=DETACHED_PROCESS, 
-        close_fds=True,
-        cwd=exe_dir,
-        env=env_limpo  # Aplica o ambiente limpo
+        [installer_path, '/VERYSILENT', '/SUPPRESSMSGBOXES', '/FORCECLOSEAPPLICATIONS'],
+        creationflags=0x00000008
     )
     
+    # 4. Encerra o programa atual para que o instalador possa substituir os arquivos
     os._exit(0)
